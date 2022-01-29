@@ -1,0 +1,33 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: rancher
+  namespace: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      rancher: web
+  template:
+    metadata:
+      labels:
+        rancher: web
+    spec:
+      containers:
+      - name: rancher-site
+        image: rancher/rancher:v2.4.4
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: rancher-entrypoint
+  namespace: default
+spec:
+  type: NodePort
+  selector:
+    rancher: web
+  ports:
+  - port: 80
+    targetPort: 3000
+    nodePort: 30001
+

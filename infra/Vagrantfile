@@ -1,0 +1,50 @@
+Vagrant.configure("2") do |config|
+
+  node01_ip ='10.0.0.201'
+  node02_ip ='10.0.0.202'
+  node03_ip ='10.0.0.203'
+  dash_ip ='10.0.0.301'
+
+  config.vm.box = "bento/ubuntu-18.04"
+  config.vm.provision "shell", path: "d.sh"
+
+  config.vm.define "node03" do |node03|
+    node03.vm.network "private_network", ip:"#{node03_ip}"
+    node03.vm.hostname="m"
+    node03.vm.provider "virtualbox" do |vb|
+      vb.memory = 2048
+      vb.cpus = 2
+    end
+    node03.vm.provision "shell", path: "init-master-node.sh", env: {"NODE_IP" => "#{node03_ip}"}
+    node03.vm.provision "shell", privileged: false, path: "prepare-kubectl.sh"
+    node03.vm.provision "shell", privileged: true, path: "prepare-kubectl.sh"
+  end
+  config.vm.define "node02" do |node02|
+    node02.vm.network "private_network", ip:"#{node02_ip}"
+    node02.vm.provider "virtualbox" do |vb|
+      vb.memory = 1024
+      vb.cpus = 1
+    end
+    node02.vm.hostname="n2"
+    node02.vm.provision "shell", path: "init-slave-node.sh", env: {"NODE_IP" => "#{node02_ip}"}
+
+  end
+  config.vm.define "node01" do |node01|
+    node01.vm.network "private_network", ip:"#{node01_ip}"
+    node01.vm.provider "virtualbox" do |vb|
+      vb.memory = 1024
+      vb.cpus = 1
+    end
+    node01.vm.hostname="n1"
+    node01.vm.provision "shell", path: "init-slave-node.sh", env: {"NODE_IP" => "#{node01_ip}"}
+  end
+  config.vm.define "dash" do |dash|
+    dash.vm.network "private_network", ip:"#{dash_ip}"
+    dash.vm.provider "virtualbox" do |vb|
+      vb.memory = 1024
+      vb.cpus = 1
+    end
+    dash.vm.hostname="dash"
+    dash.vm.provision "shell", path: "init-slave-node.sh", env: {"NODE_IP" => "#{dash_ip}"}
+  end
+end
